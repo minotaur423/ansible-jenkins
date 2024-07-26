@@ -5,7 +5,7 @@
   gather_facts: yes
 
   tasks:
-    - name: Install git
+    - name: Install bzip2
       yum:
-        name: git
+        name: bzip2
         state: present

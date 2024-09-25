@@ -1,0 +1,65 @@
+services:
+        jenkins:
+                environment:
+                        - "JENKINS_OPTS=--httpPort=-1 --httpsPort=8443 --httpsKeyStore=/certs/client/jenkins_keystore.jks --httpsKeyStorePassword=changeit"
+                container_name: jenkins
+                image: jenkins
+                build:
+                        context: jenkins
+                privileged: true
+                ports:
+                        - "443:8443"
+                        - "50000:50000"
+                volumes:
+                        - "$PWD/jenkins_home:/var/jenkins_home"
+                        - "$PWD/certs:/certs/client"
+                        - "/var/run/docker.sock:/var/run/docker.sock"
+                        - "~/.ssh/id_rsa:/var/jenkins_home/.ssh/id_rsa"
+                networks: 
+                        - net
+        swarm-jdk17:
+                container_name: swarm-jdk17
+                image: swarm-jdk17
+                build:
+                      context: jenkins-agent
+                volumes:
+
+                        - "$PWD/jenkins_home:/var/jenkins_home"
+                        - "/var/run/docker.sock:/var/run/docker.sock"
+                        - "~/.ssh/id_rsa.pub:/home/jenkins/.ssh/authorized_keys"
+                networks:
+                        - net
+
+        swarm-jdk17-ansible:
+                container_name: swarm-jdk17-ansible
+                image: swarm-jdk17-ansible
+                build:
+                      context: jenkins-agent-ansible
+                volumes:
+
+                        - "$PWD/jenkins_home:/var/jenkins_home"
+                        - "/var/run/docker.sock:/var/run/docker.sock"
+                        - "~/.ssh/id_rsa.pub:/home/jenkins/.ssh/authorized_keys"
+                networks:
+                        - net
+        sonarqube:
+                container_name: sonarqube
+                image: sonarqube
+                ports:
+                        - "9000:9000"
+                        - "9092:9092"
+                networks:
+                        - net
+        
+        nexus:
+                container_name: nexus
+                image: sonatype/nexus3
+                ports:
+                        - "8081:8081"
+                        - "8085:8085"
+                volumes:
+                        - "$PWD/nexus/nexus-data:/sonatype-work"
+                networks:
+                        - net
+networks:
+        net:
